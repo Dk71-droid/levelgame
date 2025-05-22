@@ -10,13 +10,19 @@ class QuizGame {
             unlockedLevels: 1
         };
         
+        this.settings = JSON.parse(localStorage.getItem('gameSettings')) || {
+            questionTime: 30,
+            showFeedback: true,
+            shuffleQuestions: true
+        };
+        
         this.currentQuiz = {
             level: 0,
             questions: [],
             currentQuestion: 0,
             score: 0,
             startTime: 0,
-            timeRemaining: 60,
+            timeRemaining: this.settings.questionTime,
             answers: []
         };
         
@@ -29,6 +35,7 @@ class QuizGame {
             {
                 id: 1,
                 name: "Level 1 - Dasar",
+                description: "Level pengenalan dengan soal-soal dasar",
                 questions: [
                     {
                         question: "Apa ibu kota Indonesia?",
@@ -50,6 +57,7 @@ class QuizGame {
             {
                 id: 2,
                 name: "Level 2 - Menengah",
+                description: "Level dengan tingkat kesulitan sedang",
                 questions: [
                     {
                         question: "Siapa penemu lampu pijar?",
@@ -70,13 +78,19 @@ class QuizGame {
         this.generateParticles();
         this.bindEvents();
         this.updateLevelSelect();
+        this.loadSettings();
     }
     
     bindEvents() {
-        // Form submission
+        // Form submissions
         document.getElementById('addQuestionForm').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addQuestion();
+        });
+        
+        document.getElementById('addLevelForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.addLevel();
         });
         
         // Keyboard shortcuts
@@ -86,6 +100,8 @@ class QuizGame {
                     this.closeQuiz();
                 } else if (!document.getElementById('resultModal').classList.contains('hidden')) {
                     this.closeResult();
+                } else if (!document.getElementById('settingsModal').classList.contains('hidden')) {
+                    this.closeSettings();
                 }
             }
         });
@@ -165,6 +181,37 @@ class QuizGame {
         });
     }
     
+    addLevel() {
+        const levelName = document.getElementById('levelName').value.trim();
+        const levelDescription = document.getElementById('levelDescription').value.trim();
+        
+        if (!levelName) {
+            this.showToast('Nama level tidak boleh kosong!', 'error');
+            return;
+        }
+        
+        const newLevel = {
+            id: this.levels.length + 1,
+            name: levelName,
+            description: levelDescription || 'Level baru',
+            questions: [],
+            completed: false,
+            score: 0,
+            bestTime: 0
+        };
+        
+        this.levels.push(newLevel);
+        this.saveData();
+        this.updateUI();
+        this.updateLevelSelect();
+        
+        // Reset form
+        document.getElementById('addLevelForm').reset();
+        
+        this.showToast('Level baru berhasil dibuat!', 'success');
+        this.showLevelSelect();
+    }
+    
     addQuestion() {
         const levelIndex = parseInt(document.getElementById('levelSelect').value);
         const questionText = document.getElementById('questionText').value.trim();
@@ -218,10 +265,13 @@ class QuizGame {
         this.currentQuiz.currentQuestion = 0;
         this.currentQuiz.score = 0;
         this.currentQuiz.startTime = Date.now();
-        this.currentQuiz.timeRemaining = 60;
+        this.currentQuiz.timeRemaining = this.settings.questionTime;
         this.currentQuiz.answers = [];
         
-        this.shuffleArray(this.currentQuiz.questions);
+        if (this.settings.shuffleQuestions) {
+            this.shuffleArray(this.currentQuiz.questions);
+        }
+        
         this.showQuizModal();
         this.displayQuestion();
         this.startTimer();
@@ -257,19 +307,30 @@ class QuizGame {
         });
         
         this.updateQuizProgress();
+        this.resetQuestionTimer();
+    }
+    
+    resetQuestionTimer() {
+        this.currentQuiz.timeRemaining = this.settings.questionTime;
+        document.getElementById('timer').textContent = this.currentQuiz.timeRemaining;
     }
     
     selectAnswer(selectedIndex) {
         const question = this.currentQuiz.questions[this.currentQuiz.currentQuestion];
         const buttons = document.querySelectorAll('.option-button');
         
+        // Stop timer
+        this.stopTimer();
+        
         // Disable all buttons
         buttons.forEach(btn => btn.style.pointerEvents = 'none');
         
-        // Show correct/incorrect
-        buttons[selectedIndex].classList.add(selectedIndex === question.correct ? 'correct' : 'incorrect');
-        if (selectedIndex !== question.correct) {
-            buttons[question.correct].classList.add('correct');
+        // Show correct/incorrect if feedback is enabled
+        if (this.settings.showFeedback) {
+            buttons[selectedIndex].classList.add(selectedIndex === question.correct ? 'correct' : 'incorrect');
+            if (selectedIndex !== question.correct) {
+                buttons[question.correct].classList.add('correct');
+            }
         }
         
         // Record answer
@@ -277,19 +338,22 @@ class QuizGame {
             questionIndex: this.currentQuiz.currentQuestion,
             selected: selectedIndex,
             correct: question.correct,
-            isCorrect: selectedIndex === question.correct
+            isCorrect: selectedIndex === question.correct,
+            timeUsed: this.settings.questionTime - this.currentQuiz.timeRemaining
         });
         
         // Calculate score
         if (selectedIndex === question.correct) {
             const points = question.difficulty === 'easy' ? 10 : question.difficulty === 'medium' ? 20 : 30;
-            this.currentQuiz.score += points;
+            // Bonus points for quick answers
+            const timeBonus = Math.floor((this.currentQuiz.timeRemaining / this.settings.questionTime) * 5);
+            this.currentQuiz.score += points + timeBonus;
         }
         
         // Next question after delay
         setTimeout(() => {
             this.nextQuestion();
-        }, 1500);
+        }, this.settings.showFeedback ? 1500 : 100);
     }
     
     nextQuestion() {
@@ -299,6 +363,7 @@ class QuizGame {
             this.finishQuiz();
         } else {
             this.displayQuestion();
+            this.startTimer();
         }
     }
     
@@ -308,7 +373,7 @@ class QuizGame {
             document.getElementById('timer').textContent = this.currentQuiz.timeRemaining;
             
             if (this.currentQuiz.timeRemaining <= 0) {
-                this.finishQuiz();
+                this.selectAnswer(-1); // Auto-select wrong answer when time runs out
             }
         }, 1000);
     }
@@ -414,6 +479,26 @@ class QuizGame {
         }
     }
     
+    loadSettings() {
+        document.getElementById('questionTime').value = this.settings.questionTime;
+        document.getElementById('showFeedback').checked = this.settings.showFeedback;
+        document.getElementById('shuffleQuestions').checked = this.settings.shuffleQuestions;
+    }
+    
+    saveSettings() {
+        this.settings.questionTime = parseInt(document.getElementById('questionTime').value);
+        this.settings.showFeedback = document.getElementById('showFeedback').checked;
+        this.settings.shuffleQuestions = document.getElementById('shuffleQuestions').checked;
+        
+        localStorage.setItem('gameSettings', JSON.stringify(this.settings));
+        this.showToast('Pengaturan berhasil disimpan!', 'success');
+        this.closeSettings();
+    }
+    
+    closeSettings() {
+        document.getElementById('settingsModal').classList.add('hidden');
+    }
+    
     saveData() {
         localStorage.setItem('quizLevels', JSON.stringify(this.levels));
         localStorage.setItem('gameStats', JSON.stringify(this.gameStats));
@@ -446,18 +531,40 @@ function showWelcome() {
     document.getElementById('welcomeSection').classList.remove('hidden');
     document.getElementById('levelSection').classList.add('hidden');
     document.getElementById('addQuestionSection').classList.add('hidden');
+    document.getElementById('addLevelSection').classList.add('hidden');
 }
 
 function showLevelSelect() {
     document.getElementById('welcomeSection').classList.add('hidden');
     document.getElementById('levelSection').classList.remove('hidden');
     document.getElementById('addQuestionSection').classList.add('hidden');
+    document.getElementById('addLevelSection').classList.add('hidden');
 }
 
 function showAddQuestion() {
     document.getElementById('welcomeSection').classList.add('hidden');
     document.getElementById('levelSection').classList.add('hidden');
     document.getElementById('addQuestionSection').classList.remove('hidden');
+    document.getElementById('addLevelSection').classList.add('hidden');
+}
+
+function showAddLevel() {
+    document.getElementById('welcomeSection').classList.add('hidden');
+    document.getElementById('levelSection').classList.add('hidden');
+    document.getElementById('addQuestionSection').classList.add('hidden');
+    document.getElementById('addLevelSection').classList.remove('hidden');
+}
+
+function showSettings() {
+    document.getElementById('settingsModal').classList.remove('hidden');
+}
+
+function closeSettings() {
+    game.closeSettings();
+}
+
+function saveSettings() {
+    game.saveSettings();
 }
 
 // Initialize Game
@@ -470,6 +577,10 @@ document.addEventListener('DOMContentLoaded', () => {
 window.showWelcome = showWelcome;
 window.showLevelSelect = showLevelSelect;
 window.showAddQuestion = showAddQuestion;
+window.showAddLevel = showAddLevel;
+window.showSettings = showSettings;
+window.closeSettings = closeSettings;
+window.saveSettings = saveSettings;
 window.closeQuiz = () => game.closeQuiz();
 window.closeResult = () => game.closeResult();
 window.startNextLevel = () => game.startNextLevel();
