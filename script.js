@@ -287,17 +287,20 @@ class QuizGame {
         });
     }
     
-    setLevelRepeats(levelIndex, value) {
-        const repeats = parseInt(value);
-        if (isNaN(repeats) || repeats < 1 || repeats > 10) {
-            this.showToast('Jumlah pengulangan harus antara 1 dan 10!', 'error');
-            return;
-        }
-        this.levels[levelIndex].requiredRepeats = repeats;
-        this.saveData();
-        this.updateUI();
+setLevelRepeats(levelIndex, value, silent = false) {
+    const repeats = parseInt(value);
+    if (isNaN(repeats) || repeats < 1 || repeats > 10) {
+        this.showToast('Jumlah pengulangan harus antara 1 dan 10!', 'error');
+        return;
+    }
+    this.levels[levelIndex].requiredRepeats = repeats;
+    this.saveData();
+    this.updateUI();
+    if (!silent) {
         this.showToast(`Jumlah pengulangan untuk ${this.levels[levelIndex].name} diatur ke ${repeats}!`, 'success');
     }
+}
+
     
     startLevel(levelIndex) {
         if (levelIndex >= this.gameStats.unlockedLevels) {
@@ -618,26 +621,30 @@ class QuizGame {
     }
     
     saveSettings() {
-        this.settings.questionTime = parseInt(document.getElementById('questionTime').value);
-        this.settings.showFeedback = document.getElementById('showFeedback').checked;
-        this.settings.shuffleQuestions = document.getElementById('shuffleQuestions').checked;
-        this.settings.darkMode = document.getElementById('darkMode').checked;
-        document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
-        
-        // Save level repeats
-        const repeatInputs = document.querySelectorAll('#levelRepeatsSettings input');
-        repeatInputs.forEach(input => {
-            const levelIndex = parseInt(input.dataset.level);
-            const value = parseInt(input.value);
-            if (!isNaN(value)) {
-                this.setLevelRepeats(levelIndex, value);
-            }
-        });
-        
-        localStorage.setItem('gameSettings', JSON.stringify(this.settings));
-        this.showToast('Pengaturan berhasil disimpan!', 'success');
-        this.closeSettings();
+    this.settings.questionTime = parseInt(document.getElementById('questionTime').value);
+    this.settings.showFeedback = document.getElementById('showFeedback').checked;
+    this.settings.shuffleQuestions = document.getElementById('shuffleQuestions').checked;
+    this.settings.darkMode = document.getElementById('darkMode').checked;
+    document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
+
+    const repeatInputs = document.querySelectorAll('#levelRepeatsSettings input');
+    let changed = false;
+    repeatInputs.forEach(input => {
+    const levelIndex = parseInt(input.dataset.level);
+    const value = parseInt(input.value);
+    if (!isNaN(value) && this.levels[levelIndex].requiredRepeats !== value) {
+        this.setLevelRepeats(levelIndex, value, true); // <-- DI SINI bro
+        changed = true;
     }
+});
+
+    this.saveData();
+    localStorage.setItem('gameSettings', JSON.stringify(this.settings));
+
+    this.showToast('Pengaturan berhasil disimpan!', 'success');
+    this.closeSettings();
+}
+
     
     closeSettings() {
         document.getElementById('settingsModal').classList.add('hidden');
