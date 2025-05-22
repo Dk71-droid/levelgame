@@ -161,7 +161,16 @@
                                 <option value="">Pilih Level</option>
                             </select>
                         </div>
-                        
+                        <!-- Di file HTML Anda -->
+<section id="questionListSection" class="hidden">
+    <div class="container">
+        <h2>Daftar Soal</h2>
+        <button onclick="showLevelSelect()" class="back-button">
+            <i class="fas fa-arrow-left"></i> Kembali
+        </button>
+        <div id="levelQuestionsContainer"></div>
+    </div>
+</section>
                         <div class="form-group">
                             <label for="questionText">Pertanyaan:</label>
                             <textarea id="questionText" placeholder="Masukkan pertanyaan..." required></textarea>
@@ -232,7 +241,12 @@
                 <input type="number" id="questionTime" min="10" max="120" value="30">
                 <small style="color: #7f8c8d; font-size: 0.9rem;">Waktu yang diberikan untuk menjawab setiap soal</small>
             </div>
-            
+            <div class="form-group">
+				<label>
+					<input type="checkbox" id="darkMode">
+					Mode Gelap
+				</label>
+			</div>
             <div class="form-group">
                 <label>
                     <input type="checkbox" id="showFeedback" checked>

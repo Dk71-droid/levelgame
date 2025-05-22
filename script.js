@@ -247,6 +247,16 @@ class QuizGame {
         this.showToast('Soal berhasil ditambahkan!', 'success');
         this.showLevelSelect();
     }
+
+    // New method to delete a question
+    deleteQuestion(levelIndex, questionIndex) {
+        if (confirm('Apakah Anda yakin ingin menghapus soal ini?')) {
+            this.levels[levelIndex].questions.splice(questionIndex, 1);
+            this.saveData();
+            this.updateUI();
+            this.showToast('Soal berhasil dihapus!', 'success');
+        }
+    }
     
     startLevel(levelIndex) {
         if (levelIndex >= this.gameStats.unlockedLevels) {
@@ -373,9 +383,76 @@ class QuizGame {
             document.getElementById('timer').textContent = this.currentQuiz.timeRemaining;
             
             if (this.currentQuiz.timeRemaining <= 0) {
-                this.selectAnswer(-1); // Auto-select wrong answer when time runs out
+                this.timeOut();
             }
         }, 1000);
+    }
+
+    // New method for handling time out
+    timeOut() {
+        this.stopTimer();
+        const question = this.currentQuiz.questions[this.currentQuiz.currentQuestion];
+        const buttons = document.querySelectorAll('.option-button');
+        
+        // Disable all buttons
+        buttons.forEach(btn => btn.style.pointerEvents = 'none');
+        
+        // Show correct answer if feedback is enabled
+        if (this.settings.showFeedback) {
+            buttons[question.correct].classList.add('correct');
+        }
+        
+        // Record answer as incorrect
+        this.currentQuiz.answers.push({
+            questionIndex: this.currentQuiz.currentQuestion,
+            selected: -1,
+            correct: question.correct,
+            isCorrect: false,
+            timeUsed: this.settings.questionTime
+        });
+        
+        // Immediately show failure message
+        setTimeout(() => {
+            this.failQuiz();
+        }, this.settings.showFeedback ? 1000 : 0);
+    }
+
+    // New method for handling quiz failure
+    failQuiz() {
+        this.stopTimer();
+        
+        const level = this.levels[this.currentQuiz.level];
+        const totalTime = Math.floor((Date.now() - this.currentQuiz.startTime) / 1000);
+        const correctAnswers = this.currentQuiz.answers.filter(a => a.isCorrect).length;
+        const accuracy = Math.round((correctAnswers / this.currentQuiz.questions.length) * 100);
+        
+        // Update level data
+        level.score = Math.max(level.score, this.currentQuiz.score);
+        
+        this.saveData();
+        
+        // Show failure result
+        document.getElementById('quizModal').classList.add('hidden');
+        
+        const resultModal = document.getElementById('resultModal');
+        const resultIcon = document.getElementById('resultIcon');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultMessage = document.getElementById('resultMessage');
+        
+        resultIcon.className = 'result-icon fail';
+        resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        resultTitle.textContent = 'Belum Berhasil';
+        resultMessage.textContent = 'Waktu habis untuk beberapa soal! Coba lagi untuk mendapatkan nilai yang lebih baik!';
+        
+        document.getElementById('levelScore').textContent = this.currentQuiz.score;
+        document.getElementById('levelTime').textContent = totalTime + 's';
+        document.getElementById('levelAccuracy').textContent = accuracy + '%';
+        document.getElementById('nextLevelBtn').style.display = 'none';
+        
+        resultModal.classList.remove('hidden');
+        
+        // Update UI
+        this.updateUI();
     }
     
     stopTimer() {
@@ -483,12 +560,16 @@ class QuizGame {
         document.getElementById('questionTime').value = this.settings.questionTime;
         document.getElementById('showFeedback').checked = this.settings.showFeedback;
         document.getElementById('shuffleQuestions').checked = this.settings.shuffleQuestions;
+		document.getElementById('darkMode').checked = this.settings.darkMode || false;
+		document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
     }
     
     saveSettings() {
         this.settings.questionTime = parseInt(document.getElementById('questionTime').value);
         this.settings.showFeedback = document.getElementById('showFeedback').checked;
         this.settings.shuffleQuestions = document.getElementById('shuffleQuestions').checked;
+		this.settings.darkMode = document.getElementById('darkMode').checked;
+		document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
         
         localStorage.setItem('gameSettings', JSON.stringify(this.settings));
         this.showToast('Pengaturan berhasil disimpan!', 'success');
@@ -584,3 +665,4 @@ window.saveSettings = saveSettings;
 window.closeQuiz = () => game.closeQuiz();
 window.closeResult = () => game.closeResult();
 window.startNextLevel = () => game.startNextLevel();
+window.deleteQuestion = (levelIndex, questionIndex) => game.deleteQuestion(levelIndex, questionIndex);

@@ -7,7 +7,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: var(--bg-color);
     min-height: 100vh;
     color: #333;
     overflow-x: hidden;
@@ -880,4 +880,149 @@ body {
     .form-card {
         padding: 1.5rem;
     }
+}
+[data-theme="dark"] {
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --text-color: #e0e0e0;
+  --subtle-text: #aaaaaa;
+  --border-color: #2c2c2c;
+  --primary: #3498db;
+  --accent: #2ecc71;
+  --danger: #e74c3c;
+  --secondary: #2c2c2c;
+}
+
+[data-theme="dark"] body {
+  background: var(--bg-color) !important;
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .header,
+[data-theme="dark"] .form-card,
+[data-theme="dark"] .welcome-card,
+[data-theme="dark"] .level-card,
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .result-stats {
+  background: var(--card-bg);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .logo,
+[data-theme="dark"] .form-header h2,
+[data-theme="dark"] .stat-number,
+[data-theme="dark"] .stat-label,
+[data-theme="dark"] .question-card h3 {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .section-header h2,
+[data-theme="dark"] .section-header p {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .score-display {
+  background: var(--primary);
+  color: white;
+}
+
+[data-theme="dark"] .settings-icon {
+  background: #444;
+  color: white;
+}
+
+[data-theme="dark"] .btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+  background: #217dbb;
+}
+
+[data-theme="dark"] .btn-secondary {
+  background: var(--secondary);
+  color: white;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: #333;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: #2c2c2c;
+  color: white;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .option-button {
+  background: var(--secondary);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .option-button:hover {
+  background: #333;
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .option-button.correct {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+[data-theme="dark"] .option-button.incorrect {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: white;
+}
+
+[data-theme="dark"] .progress-bar {
+  background: #333;
+}
+
+[data-theme="dark"] .progress-fill {
+  background: var(--accent);
+}
+
+[data-theme="dark"] .toast {
+  background: #1e1e1e;
+  color: var(--text-color);
+}
+[data-theme="dark"] .welcome-card h1 {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .welcome-card p {
+  color: var(--subtle-text);
+}
+[data-theme="dark"] .progress-text {
+  color: var(--text-color);
+}
+[data-theme="dark"] .form-group label {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .form-header h2 {
+  color: var(--text-color);
+}
+[data-theme="dark"] .result-content h2 {
+  color: var(--text-color);
+}
+
+[data-theme="dark"] .result-content p {
+  color: var(--subtle-text);
+}
+
+[data-theme="dark"] .result-stat .stat-label {
+  color: var(--subtle-text);
+}
+
+[data-theme="dark"] .result-stat .stat-value {
+  color: var(--text-color);
 }
