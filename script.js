@@ -45,7 +45,7 @@ class QuizGame {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       this.currentStudent = await this.getStudentById(user.id);
-      this.isAdmin = user.email === 'admin@example.com'; // Replace with your admin email
+      this.isAdmin = user.email === 'admin@gmail.com'; // Replace with your admin email
     }
     this.updateUI();
     this.generateParticles();
