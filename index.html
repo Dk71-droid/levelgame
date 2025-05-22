@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Master - Game Edukasi</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Background Particles -->
+    <div class="particles-container" id="particles"></div>
+    
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+                <span>Quiz Master</span>
+            </div>
+            <div class="user-info">
+                <div class="score-display">
+                    <i class="fas fa-star"></i>
+                    <span id="totalScore">0</span>
+                </div>
+                <div class="progress-ring">
+                    <svg class="progress-svg" width="50" height="50">
+                        <circle cx="25" cy="25" r="20" stroke="#333" stroke-width="3" fill="none"/>
+                        <circle id="progress-circle" cx="25" cy="25" r="20" stroke="#4CAF50" stroke-width="3" 
+                                fill="none" stroke-linecap="round" transform="rotate(-90 25 25)"/>
+                    </svg>
+                    <span class="progress-text" id="progressText">0%</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section" id="welcomeSection">
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h1>Selamat Datang di Quiz Master</h1>
+                    <p>Uji pengetahuan Anda melalui berbagai level yang menantang!</p>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <span class="stat-number" id="completedLevels">0</span>
+                            <span class="stat-label">Level Selesai</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-fire"></i>
+                            <span class="stat-number" id="streak">0</span>
+                            <span class="stat-label">Streak</span>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="stat-number" id="totalTime">0m</span>
+                            <span class="stat-label">Total Waktu</span>
+                        </div>
+                    </div>
+                    <button class="btn-primary" onclick="showLevelSelect()">
+                        <i class="fas fa-play"></i>
+                        Mulai Bermain
+                    </button>
+                </div>
+            </section>
+
+            <!-- Level Selection -->
+            <section class="level-section hidden" id="levelSection">
+                <div class="section-header">
+                    <h2>Pilih Level</h2>
+                    <p>Selesaikan level secara berurutan untuk membuka level berikutnya</p>
+                </div>
+                
+                <div class="level-grid" id="levelGrid">
+                    <!-- Levels akan di-generate oleh JavaScript -->
+                </div>
+                
+                <div class="level-actions">
+                    <button class="btn-secondary" onclick="showWelcome()">
+                        <i class="fas fa-arrow-left"></i>
+                        Kembali
+                    </button>
+                    <button class="btn-primary" onclick="showAddQuestion()">
+                        <i class="fas fa-plus"></i>
+                        Tambah Soal
+                    </button>
+                </div>
+            </section>
+
+            <!-- Add Question Section -->
+            <section class="add-question-section hidden" id="addQuestionSection">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2>Tambah Soal Baru</h2>
+                        <button class="btn-close" onclick="showLevelSelect()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <form id="addQuestionForm" class="question-form">
+                        <div class="form-group">
+                            <label for="levelSelect">Level:</label>
+                            <select id="levelSelect" required>
+                                <option value="">Pilih Level</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="questionText">Pertanyaan:</label>
+                            <textarea id="questionText" placeholder="Masukkan pertanyaan..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Pilihan Jawaban:</label>
+                            <div class="options-container">
+                                <div class="option-input">
+                                    <input type="text" id="option1" placeholder="Pilihan A" required>
+                                    <input type="radio" name="correctAnswer" value="0" required>
+                                    <label>Benar</label>
+                                </div>
+                                <div class="option-input">
+                                    <input type="text" id="option2" placeholder="Pilihan B" required>
+                                    <input type="radio" name="correctAnswer" value="1">
+                                    <label>Benar</label>
+                                </div>
+                                <div class="option-input">
+                                    <input type="text" id="option3" placeholder="Pilihan C" required>
+                                    <input type="radio" name="correctAnswer" value="2">
+                                    <label>Benar</label>
+                                </div>
+                                <div class="option-input">
+                                    <input type="text" id="option4" placeholder="Pilihan D" required>
+                                    <input type="radio" name="correctAnswer" value="3">
+                                    <label>Benar</label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="difficulty">Tingkat Kesulitan:</label>
+                            <select id="difficulty" required>
+                                <option value="easy">Mudah (10 poin)</option>
+                                <option value="medium">Sedang (20 poin)</option>
+                                <option value="hard">Sulit (30 poin)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" onclick="showLevelSelect()">
+                                Batal
+                            </button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i>
+                                Simpan Soal
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Quiz Modal -->
+    <div class="modal hidden" id="quizModal">
+        <div class="modal-content">
+            <div class="quiz-header">
+                <div class="level-info">
+                    <span class="level-badge" id="currentLevelBadge">Level 1</span>
+                    <div class="quiz-timer">
+                        <i class="fas fa-clock"></i>
+                        <span id="timer">60</span>s
+                    </div>
+                </div>
+                <div class="question-counter">
+                    <span id="currentQuestion">1</span> / <span id="totalQuestions">5</span>
+                </div>
+            </div>
+            
+            <div class="quiz-body">
+                <div class="question-card">
+                    <h3 id="questionTitle">Pertanyaan akan muncul disini...</h3>
+                    <div class="options-grid" id="optionsGrid">
+                        <!-- Options akan di-generate oleh JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="quiz-footer">
+                <button class="btn-secondary" onclick="closeQuiz()">
+                    <i class="fas fa-times"></i>
+                    Keluar
+                </button>
+                <div class="quiz-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="quizProgress"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal hidden" id="resultModal">
+        <div class="modal-content result-content">
+            <div class="result-icon" id="resultIcon">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <h2 id="resultTitle">Selamat!</h2>
+            <p id="resultMessage">Anda berhasil menyelesaikan level ini!</p>
+            
+            <div class="result-stats">
+                <div class="result-stat">
+                    <span class="stat-label">Skor</span>
+                    <span class="stat-value" id="levelScore">0</span>
+                </div>
+                <div class="result-stat">
+                    <span class="stat-label">Waktu</span>
+                    <span class="stat-value" id="levelTime">0s</span>
+                </div>
+                <div class="result-stat">
+                    <span class="stat-label">Akurasi</span>
+                    <span class="stat-value" id="levelAccuracy">0%</span>
+                </div>
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn-secondary" onclick="closeResult()">
+                    Kembali ke Menu
+                </button>
+                <button class="btn-primary" id="nextLevelBtn" onclick="startNextLevel()">
+                    Level Berikutnya
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+<!-- Tambahkan di header setelah user-info -->
+<div class="settings-icon" onclick="showSettings()">
+    <i class="fas fa-cog"></i>
+</div>
+
+<!-- Tambahkan modal settings -->
+<div class="modal hidden" id="settingsModal">
+    <div class="modal-content">
+        <div class="form-header">
+            <h2>Pengaturan</h2>
+            <button class="btn-close" onclick="closeSettings()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="form-group">
+            <label for="quizTime">Waktu Pengerjaan (detik):</label>
+            <input type="number" id="quizTime" min="30" max="300" value="60">
+        </div>
+        
+        <div class="form-actions">
+            <button class="btn-primary" onclick="saveSettings()">
+                <i class="fas fa-save"></i>
+                Simpan Pengaturan
+            </button>
+        </div>
+    </div>
+</div>
+    <script src="script.js"></script>
+</body>
+</html>
