@@ -2,8 +2,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
 // Initialize Supabase
-const supabaseUrl = 'YOUR_SUPABASE_URL'; // Replace with your Supabase URL
-const supabaseKey = 'YOUR_SUPABASE_AN遵1d5f ANON_KEY'; // Replace with your Supabase anon key
+const supabaseUrl = 'https://wqcsyrycewaxdgsfjbqf.supabase.co'; // Replace with your Supabase URL
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxY3N5cnljZXdheGRnc2ZqYnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5Mjc1MDEsImV4cCI6MjA2MzUwMzUwMX0.v24w0cq4bZcEcIjr-57V_uPjOCLKMmStbyAaEX1I1dY'; // Replace with your Supabase anon key
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Game State Management
