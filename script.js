@@ -13,7 +13,8 @@ class QuizGame {
         this.settings = JSON.parse(localStorage.getItem('gameSettings')) || {
             questionTime: 30,
             showFeedback: true,
-            shuffleQuestions: true
+            shuffleQuestions: true,
+            darkMode: false
         };
         
         this.currentQuiz = {
@@ -52,7 +53,9 @@ class QuizGame {
                 ],
                 completed: false,
                 score: 0,
-                bestTime: 0
+                bestTime: 0,
+                requiredRepeats: 2,
+                currentRepeats: 0
             },
             {
                 id: 2,
@@ -68,7 +71,9 @@ class QuizGame {
                 ],
                 completed: false,
                 score: 0,
-                bestTime: 0
+                bestTime: 0,
+                requiredRepeats: 2,
+                currentRepeats: 0
             }
         ];
     }
@@ -105,6 +110,12 @@ class QuizGame {
                 }
             }
         });
+        
+        // Bind settings form submission
+        document.getElementById('settingsForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.saveSettings();
+        });
     }
     
     generateParticles() {
@@ -139,6 +150,7 @@ class QuizGame {
         document.getElementById('progressText').textContent = Math.round(progress) + '%';
         
         this.renderLevels();
+        this.updateLevelRepeatsSettings();
     }
     
     renderLevels() {
@@ -147,7 +159,7 @@ class QuizGame {
         
         this.levels.forEach((level, index) => {
             const isUnlocked = index < this.gameStats.unlockedLevels;
-            const isCompleted = level.completed;
+            const isCompleted = level.completed && level.currentRepeats >= level.requiredRepeats;
             
             const levelCard = document.createElement('div');
             levelCard.className = `level-card ${!isUnlocked ? 'locked' : ''} ${isCompleted ? 'completed' : ''}`;
@@ -159,9 +171,10 @@ class QuizGame {
                 <div class="level-number">${level.name}</div>
                 <div class="level-questions">${level.questions.length} Soal</div>
                 ${isCompleted ? `<div class="level-score">Skor: ${level.score}</div>` : ''}
+                <div class="repeat-status">Pengulangan: ${level.currentRepeats}/${level.requiredRepeats}</div>
             `;
             
-            if (isUnlocked) {
+            if (isUnlocked && !isCompleted) {
                 levelCard.addEventListener('click', () => this.startLevel(index));
             }
             
@@ -197,7 +210,9 @@ class QuizGame {
             questions: [],
             completed: false,
             score: 0,
-            bestTime: 0
+            bestTime: 0,
+            requiredRepeats: 2,
+            currentRepeats: 0
         };
         
         this.levels.push(newLevel);
@@ -225,7 +240,7 @@ class QuizGame {
         const difficulty = document.getElementById('difficulty').value;
         
         // Validation
-        if (levelIndex === '' || !questionText || options.some(opt => !opt)) {
+        if (isNaN(levelIndex) || !questionText || options.some(opt => !opt)) {
             this.showToast('Harap lengkapi semua field!', 'error');
             return;
         }
@@ -248,7 +263,6 @@ class QuizGame {
         this.showLevelSelect();
     }
 
-    // New method to delete a question
     deleteQuestion(levelIndex, questionIndex) {
         if (confirm('Apakah Anda yakin ingin menghapus soal ini?')) {
             this.levels[levelIndex].questions.splice(questionIndex, 1);
@@ -256,6 +270,33 @@ class QuizGame {
             this.updateUI();
             this.showToast('Soal berhasil dihapus!', 'success');
         }
+    }
+
+    updateLevelRepeatsSettings() {
+        const container = document.getElementById('levelRepeatsSettings');
+        container.innerHTML = '';
+        
+        this.levels.forEach((level, index) => {
+            const item = document.createElement('div');
+            item.className = 'level-repeat-item';
+            item.innerHTML = `
+                <label>${level.name}</label>
+                <input type="number" min="1" max="10" value="${level.requiredRepeats}" data-level="${index}">
+            `;
+            container.appendChild(item);
+        });
+    }
+    
+    setLevelRepeats(levelIndex, value) {
+        const repeats = parseInt(value);
+        if (isNaN(repeats) || repeats < 1 || repeats > 10) {
+            this.showToast('Jumlah pengulangan harus antara 1 dan 10!', 'error');
+            return;
+        }
+        this.levels[levelIndex].requiredRepeats = repeats;
+        this.saveData();
+        this.updateUI();
+        this.showToast(`Jumlah pengulangan untuk ${this.levels[levelIndex].name} diatur ke ${repeats}!`, 'success');
     }
     
     startLevel(levelIndex) {
@@ -388,7 +429,6 @@ class QuizGame {
         }, 1000);
     }
 
-    // New method for handling time out
     timeOut() {
         this.stopTimer();
         const question = this.currentQuiz.questions[this.currentQuiz.currentQuestion];
@@ -417,7 +457,6 @@ class QuizGame {
         }, this.settings.showFeedback ? 1000 : 0);
     }
 
-    // New method for handling quiz failure
     failQuiz() {
         this.stopTimer();
         
@@ -442,7 +481,7 @@ class QuizGame {
         resultIcon.className = 'result-icon fail';
         resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
         resultTitle.textContent = 'Belum Berhasil';
-        resultMessage.textContent = 'Waktu habis untuk beberapa soal! Coba lagi untuk mendapatkan nilai yang lebih baik!';
+        resultMessage.textContent = `Waktu habis atau akurasi di bawah 70%! Anda telah menyelesaikan ${level.currentRepeats}/${level.requiredRepeats} pengulangan. Coba lagi!`;
         
         document.getElementById('levelScore').textContent = this.currentQuiz.score;
         document.getElementById('levelTime').textContent = totalTime + 's';
@@ -472,21 +511,28 @@ class QuizGame {
         
         // Update level data
         const isNewRecord = !level.completed || this.currentQuiz.score > level.score;
-        level.completed = true;
         level.score = Math.max(level.score, this.currentQuiz.score);
         level.bestTime = level.bestTime === 0 ? totalTime : Math.min(level.bestTime, totalTime);
+        
+        // Increment current repeats if accuracy >= 70%
+        if (accuracy >= 70) {
+            level.currentRepeats = (level.currentRepeats || 0) + 1;
+        }
+        
+        // Check if level is completed based on required repeats
+        level.completed = level.currentRepeats >= level.requiredRepeats;
         
         // Update game stats
         if (isNewRecord) {
             this.gameStats.totalScore += this.currentQuiz.score - (level.score - this.currentQuiz.score);
         }
         
-        if (this.currentQuiz.level + 1 === this.gameStats.completedLevels) {
+        if (level.completed && this.currentQuiz.level + 1 === this.gameStats.completedLevels) {
             this.gameStats.completedLevels++;
             this.gameStats.streak++;
         }
         
-        if (this.currentQuiz.level + 1 >= this.gameStats.unlockedLevels && accuracy >= 70) {
+        if (level.completed && this.currentQuiz.level + 1 >= this.gameStats.unlockedLevels) {
             this.gameStats.unlockedLevels = Math.min(this.gameStats.unlockedLevels + 1, this.levels.length);
         }
         
@@ -503,17 +549,23 @@ class QuizGame {
         const resultIcon = document.getElementById('resultIcon');
         const resultTitle = document.getElementById('resultTitle');
         const resultMessage = document.getElementById('resultMessage');
+        const level = this.levels[this.currentQuiz.level];
         
-        if (accuracy >= 70) {
+        if (accuracy >= 70 && level.currentRepeats >= level.requiredRepeats) {
             resultIcon.className = 'result-icon success';
             resultIcon.innerHTML = '<i class="fas fa-trophy"></i>';
             resultTitle.textContent = 'Selamat!';
-            resultMessage.textContent = 'Anda berhasil menyelesaikan level ini!';
+            resultMessage.textContent = `Anda berhasil menyelesaikan ${level.name} dengan ${level.currentRepeats}/${level.requiredRepeats} pengulangan!`;
+        } else if (accuracy >= 70) {
+            resultIcon.className = 'result-icon success';
+            resultIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+            resultTitle.textContent = 'Pengulangan Berhasil!';
+            resultMessage.textContent = `Anda telah menyelesaikan pengulangan ${level.currentRepeats}/${level.requiredRepeats}. Selesaikan ${level.requiredRepeats - level.currentRepeats} pengulangan lagi untuk membuka level berikutnya!`;
         } else {
             resultIcon.className = 'result-icon fail';
             resultIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
             resultTitle.textContent = 'Belum Berhasil';
-            resultMessage.textContent = 'Coba lagi untuk mendapatkan nilai yang lebih baik!';
+            resultMessage.textContent = `Akurasi Anda di bawah 70%. Anda telah menyelesaikan ${level.currentRepeats}/${level.requiredRepeats} pengulangan. Coba lagi untuk mendapatkan nilai yang lebih baik!`;
         }
         
         document.getElementById('levelScore').textContent = this.currentQuiz.score;
@@ -521,7 +573,7 @@ class QuizGame {
         document.getElementById('levelAccuracy').textContent = accuracy + '%';
         
         const nextBtn = document.getElementById('nextLevelBtn');
-        if (this.currentQuiz.level + 1 < this.levels.length && accuracy >= 70) {
+        if (this.currentQuiz.level + 1 < this.levels.length && level.currentRepeats >= level.requiredRepeats) {
             nextBtn.style.display = 'inline-flex';
         } else {
             nextBtn.style.display = 'none';
@@ -560,16 +612,27 @@ class QuizGame {
         document.getElementById('questionTime').value = this.settings.questionTime;
         document.getElementById('showFeedback').checked = this.settings.showFeedback;
         document.getElementById('shuffleQuestions').checked = this.settings.shuffleQuestions;
-		document.getElementById('darkMode').checked = this.settings.darkMode || false;
-		document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
+        document.getElementById('darkMode').checked = this.settings.darkMode || false;
+        document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
+        this.updateLevelRepeatsSettings();
     }
     
     saveSettings() {
         this.settings.questionTime = parseInt(document.getElementById('questionTime').value);
         this.settings.showFeedback = document.getElementById('showFeedback').checked;
         this.settings.shuffleQuestions = document.getElementById('shuffleQuestions').checked;
-		this.settings.darkMode = document.getElementById('darkMode').checked;
-		document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
+        this.settings.darkMode = document.getElementById('darkMode').checked;
+        document.documentElement.setAttribute('data-theme', this.settings.darkMode ? 'dark' : '');
+        
+        // Save level repeats
+        const repeatInputs = document.querySelectorAll('#levelRepeatsSettings input');
+        repeatInputs.forEach(input => {
+            const levelIndex = parseInt(input.dataset.level);
+            const value = parseInt(input.value);
+            if (!isNaN(value)) {
+                this.setLevelRepeats(levelIndex, value);
+            }
+        });
         
         localStorage.setItem('gameSettings', JSON.stringify(this.settings));
         this.showToast('Pengaturan berhasil disimpan!', 'success');
@@ -578,6 +641,11 @@ class QuizGame {
     
     closeSettings() {
         document.getElementById('settingsModal').classList.add('hidden');
+        // Reset toggle state when closing settings
+        const repeatsContainer = document.getElementById('levelRepeatsSettings');
+        const toggleIcon = document.getElementById('toggleIcon');
+        repeatsContainer.classList.add('hidden');
+        toggleIcon.classList.remove('rotate');
     }
     
     saveData() {
@@ -648,6 +716,13 @@ function saveSettings() {
     game.saveSettings();
 }
 
+function toggleLevelRepeats() {
+    const repeatsContainer = document.getElementById('levelRepeatsSettings');
+    const toggleIcon = document.getElementById('toggleIcon');
+    repeatsContainer.classList.toggle('hidden');
+    toggleIcon.classList.toggle('rotate');
+}
+
 // Initialize Game
 let game;
 document.addEventListener('DOMContentLoaded', () => {
@@ -666,3 +741,4 @@ window.closeQuiz = () => game.closeQuiz();
 window.closeResult = () => game.closeResult();
 window.startNextLevel = () => game.startNextLevel();
 window.deleteQuestion = (levelIndex, questionIndex) => game.deleteQuestion(levelIndex, questionIndex);
+window.toggleLevelRepeats = toggleLevelRepeats;
