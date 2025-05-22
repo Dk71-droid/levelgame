@@ -193,7 +193,7 @@ class QuizGame {
       return;
     }
     this.currentStudent = await this.getStudentById(data.user.id);
-    this.isAdmin = data.user.email === 'admin@example.com'; // Replace with your admin email
+    this.isAdmin = data.user.email === 'admin@gmail.com'; // Replace with your admin email
     this.showToast(`Selamat datang, ${this.currentStudent.name}!`, 'success');
     this.closeLoginModal();
     this.showWelcome();
