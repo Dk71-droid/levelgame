@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Murid - Quiz Master</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <h2>Dashboard Murid</h2>
+            <div class="form-group">
+                <label>Masukkan Kode Kelas:</label>
+                <input type="text" id="classCode">
+                <button class="btn-primary" onclick="game.joinClass(document.getElementById('classCode').value)">Gabung</button>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number" id="completedLevels">0</span>
+                    <span class="stat-label">Level Selesai</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number" id="totalScore">0</span>
+                    <span class="stat-label">Skor</span>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="showLevelSelect()">Mulai Quiz</button>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
