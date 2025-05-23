@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Guru - Quiz Master</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="dashboard">
+            <h2>Dashboard Guru</h2>
+            <button class="btn-primary" onclick="showAddClass()">Buat Kelas</button>
+            <button class="btn-primary" onclick="showAddLevel()">Buat Level</button>
+            <button class="btn-primary" onclick="showAddQuestion()">Tambah Soal</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nama Murid</th>
+                        <th>Level Selesai</th>
+                        <th>Skor</th>
+                        <th>Waktu</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="studentList"></tbody>
+            </table>
+            <div id="chartContainer"></div>
+        </div>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
