@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Inisialisasi Supabase
-const supabase = createClient('YOUR_SUPABASE_URL', 'YOUR_SUPABASE_ANON_KEY');
+const supabase = createClient('https://wqcsyrycewaxdgsfjbqf.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxY3N5cnljZXdheGRnc2ZqYnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5Mjc1MDEsImV4cCI6MjA2MzUwMzUwMX0.v24w0cq4bZcEcIjr-57V_uPjOCLKMmStbyAaEX1I1dY');
 
 // Game State Management
 class QuizGame {
