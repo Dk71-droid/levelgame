@@ -1119,3 +1119,47 @@ body {
 [data-theme="dark"] .toggle-header i {
     color: var(--primary);
 }
+.login-section,
+.signup-section,
+.dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+}
+
+.dashboard table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.dashboard th,
+.dashboard td {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color, #e8ecef);
+    text-align: left;
+}
+
+.dashboard th {
+    background: var(--primary, #3498db);
+    color: white;
+}
+
+.dashboard td button {
+    padding: 0.5rem 1rem;
+    background: var(--danger, #e74c3c);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.dashboard td button:hover {
+    background: #c0392b;
+}
+
+#chartContainer {
+    margin-top: 2rem;
+    max-width: 600px;
+}
