@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Master - Kuis</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="particles" class="particles-container"></div>
+
+    <header class="header">
+      <div class="container">
+        <div class="logo">
+          <i class="fas fa-graduation-cap"></i>
+          <span>Quiz Master</span>
+        </div>
+        <div class="user-info">
+          <div class="score-display">
+            <i class="fas fa-star"></i>
+            <span id="totalScore">0</span>
+          </div>
+          <div class="progress-ring">
+            <svg width="50" height="50">
+              <circle
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke="#ecf0f1"
+                stroke-width="5"
+              />
+              <circle
+                id="progress-circle"
+                cx="25"
+                cy="25"
+                r="20"
+                fill="none"
+                stroke-width="5"
+              />
+            </svg>
+            <span class="progress-text" id="progressText">0%</span>
+          </div>
+          <div class="settings-icon" onclick="showSettings()">
+            <i class="fas fa-cog"></i>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <section id="levelSection" class="level-section hidden">
+        <div class="section-header">
+          <h2>Pilih Level</h2>
+          <p>
+            Selesaikan level secara berurutan untuk membuka level berikutnya
+          </p>
+        </div>
+        <div class="level-grid" id="levelGrid"></div>
+        <div class="level-actions">
+          <button class="btn-secondary" onclick="goToDashboard()">
+            <i class="fas fa-arrow-left"></i> Kembali ke Dashboard
+          </button>
+        </div>
+      </section>
+
+      <section id="addLevelSection" class="add-level-section hidden">
+        <div class="form-card">
+          <div class="form-header">
+            <h2>Buat Level Baru</h2>
+            <button class="btn-close" onclick="showLevelSelect()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <form id="addLevelForm">
+            <div class="form-group">
+              <label for="levelName">Nama Level:</label>
+              <input type="text" id="levelName" required />
+            </div>
+            <div class="form-group">
+              <label for="levelDescription">Deskripsi (Opsional):</label>
+              <textarea id="levelDescription"></textarea>
+            </div>
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="showLevelSelect()"
+              >
+                Batal
+              </button>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-plus"></i> Buat Level
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="addQuestionSection" class="add-question-section hidden">
+        <div class="form-card">
+          <div class="form-header">
+            <h2>Tambah Soal Baru</h2>
+            <button class="btn-close" onclick="showLevelSelect()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <form id="addQuestionForm">
+            <div class="form-group">
+              <label for="levelSelect">Level:</label>
+              <select id="levelSelect" required>
+                <option value="">Pilih Level</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="questionText">Pertanyaan:</label>
+              <textarea id="questionText" required></textarea>
+            </div>
+            <div class="form-group">
+              <label>Pilihan Jawaban:</label>
+              <div class="options-container">
+                <div class="option-input">
+                  <input type="text" id="option1" required />
+                  <input type="radio" name="correctAnswer" value="0" required />
+                  <label>Benar</label>
+                </div>
+                <div class="option-input">
+                  <input type="text" id="option2" required />
+                  <input type="radio" name="correctAnswer" value="1" />
+                  <label>Benar</label>
+                </div>
+                <div class="option-input">
+                  <input type="text" id="option3" required />
+                  <input type="radio" name="correctAnswer" value="2" />
+                  <label>Benar</label>
+                </div>
+                <div class="option-input">
+                  <input type="text" id="option4" required />
+                  <input type="radio" name="correctAnswer" value="3" />
+                  <label>Benar</label>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="difficulty">Tingkat Kesulitan:</label>
+              <select id="difficulty" required>
+                <option value="easy">Mudah (10 poin)</option>
+                <option value="medium">Sedang (20 poin)</option>
+                <option value="hard">Sulit (30 poin)</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="showLevelSelect()"
+              >
+                Batal
+              </button>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Simpan Soal
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <div id="quizModal" class="modal hidden">
+        <div class="modal-content">
+          <div class="quiz-header">
+            <div class="level-info">
+              <span class="level-badge" id="currentLevelBadge">Level 1</span>
+              <div class="quiz-timer">
+                <i class="fas fa-clock"></i>
+                <span id="timer">30s</span>
+              </div>
+            </div>
+            <div class="question-counter">
+              <span id="currentQuestion">1</span> /
+              <span id="totalQuestions">5</span>
+            </div>
+          </div>
+          <div class="question-card">
+            <h3 id="questionTitle">Pertanyaan akan muncul disini...</h3>
+            <div class="options-grid" id="optionsGrid"></div>
+          </div>
+          <div class="quiz-footer">
+            <button class="btn-secondary" onclick="closeQuiz()">
+              <i class="fas fa-times"></i> Keluar
+            </button>
+            <div class="quiz-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" id="quizProgress"></div>
+              </div>
+            </div>
+            <button class="btn-primary hidden" id="submitAnswer">
+              <i class="fas fa-check"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="resultModal" class="modal hidden">
+        <div class="modal-content result-content">
+          <div id="resultIcon" class="result-icon"></div>
+          <h2 id="resultTitle">Selamat!</h2>
+          <p id="resultMessage">Anda berhasil menyelesaikan level ini!</p>
+          <div class="result-stats">
+            <div class="result-stat">
+              <span class="stat-value" id="levelScore">0</span>
+              <span class="stat-label">Skor</span>
+            </div>
+            <div class="result-stat">
+              <span class="stat-value" id="levelTime">0s</span>
+              <span class="stat-label">Waktu</span>
+            </div>
+            <div class="result-stat">
+              <span class="stat-value" id="levelAccuracy">0%</span>
+              <span class="stat-label">Akurasi</span>
+            </div>
+          </div>
+          <div class="result-actions">
+            <button class="btn-secondary" onclick="closeResult()">
+              <i class="fas fa-arrow-left"></i> Kembali ke Level
+            </button>
+            <button
+              class="btn-primary"
+              onclick="startNextLevel()"
+              id="nextLevelBtn"
+            >
+              <i class="fas fa-arrow-right"></i> Level Berikutnya
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settingsModal" class="modal hidden">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2>Pengaturan</h2>
+            <button class="btn-close" onclick="closeSettings()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <form id="settingsForm">
+            <div class="form-group">
+              <label for="questionTime">Waktu per Soal (detik):</label>
+              <input
+                type="number"
+                id="questionTime"
+                min="10"
+                max="60"
+                value="30"
+              />
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="showFeedback" />
+                Tampilkan Umpan Balik Jawaban
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="shuffleQuestions" />
+                Acak Urutan Soal
+              </label>
+            </div>
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="darkMode" />
+                Mode Gelap
+              </label>
+            </div>
+            <div class="form-group">
+              <div class="toggle-header" onclick="toggleLevelRepeats()">
+                <h3>Pengaturan Pengulangan Level</h3>
+                <i id="toggleIcon" class="fas fa-chevron-down"></i>
+              </div>
+              <div id="levelRepeatsSettings" class="hidden"></div>
+            </div>
+            <div class="modal-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeSettings()"
+              >
+                Batal
+              </button>
+              <button type="submit" class="btn-primary">Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="toastContainer" class="toast-container"></div>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
